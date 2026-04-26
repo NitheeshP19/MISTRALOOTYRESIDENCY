@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — MISTRAL OOTY Residency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #c9a96e;
+    --gold-light: #e8d5a3;
+    --cream: #f5f0e8;
+    --dark: #0a0a08;
+    --charcoal: #1a1a16;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    color: var(--cream);
+    font-family: 'Tenor Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10,10,8,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(201,169,110,0.1);
+  }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--cream);
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+    align-items: center;
+  }
+
+  .nav-links li {
+    position: relative;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.7);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: block;
+    padding: 8px 0;
+  }
+
+  .nav-links a:hover { color: var(--gold); }
+
+  /* Dropdown */
+  .dropdown {
+    position: relative;
+  }
+
+  .dropdown-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dropdown-toggle::after {
+    content: '▼';
+    font-size: 8px;
+    transition: transform 0.3s ease;
+  }
+
+  .dropdown:hover .dropdown-toggle::after {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--charcoal);
+    border: 1px solid rgba(201,169,110,0.2);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    margin-top: 16px;
+  }
+
+  .dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .dropdown-menu a {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(201,169,110,0.1);
+    font-size: 10px;
+  }
+
+  .dropdown-menu a:last-child {
+    border-bottom: none;
+  }
+
+  .dropdown-menu a:hover {
+    background: rgba(201,169,110,0.1);
+  }
+
+  /* Hero Section */
+  .blog-hero {
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(rgba(10,10,8,0.7), rgba(10,10,8,0.7)), 
+                url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    text-align: center;
+    padding: 0 48px;
+  }
+
+  .blog-hero-content {
+    max-width: 800px;
+  }
+
+  .blog-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+
+  .blog-hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(48px, 6vw, 80px);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--cream);
+    margin-bottom: 24px;
+  }
+
+  .blog-hero-title em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .blog-hero-subtitle {
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: rgba(245,240,232,0.6);
+    line-height: 1.8;
+  }
+
+  /* Blog Grid */
+  .blog-section {
+    padding: 120px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 60px;
+  }
+
+  .blog-card {
+    background: var(--charcoal);
+    border: 1px solid rgba(201,169,110,0.1);
+    transition: transform 0.4s ease, border-color 0.4s ease;
+    overflow: hidden;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(201,169,110,0.3);
+  }
+
+  .blog-card-image {
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+  }
+
+  .blog-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+
+  .blog-card:hover .blog-card-image img {
+    transform: scale(1.05);
+  }
+
+  .blog-card-content {
+    padding: 40px;
+  }
+
+  .blog-card-date {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .blog-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+
+  .blog-card-excerpt {
+    font-size: 12px;
+    line-height: 1.8;
+    color: rgba(245,240,232,0.5);
+    margin-bottom: 24px;
+  }
+
+  .blog-card-link {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: gap 0.3s ease;
+  }
+
+  .blog-card-link:hover {
+    gap: 12px;
+  }
+
+  .blog-card-link::after {
+    content: '→';
+  }
+
+  /* Footer */
+  footer {
+    background: var(--charcoal);
+    padding: 80px;
+    border-top: 1px solid rgba(201,169,110,0.15);
+    text-align: center;
+  }
+
+  .footer-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+
+  .footer-tagline {
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 24px; }
+    .nav-links { gap: 24px; }
+    .blog-hero { height: 50vh; padding: 0 24px; }
+    .blog-section { padding: 80px 24px; }
+    .blog-grid { grid-template-columns: 1fr; gap: 40px; }
+    footer { padding: 60px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="../pages/index.html" class="nav-logo">MISTRAL OOTY Residency</a>
+  <ul class="nav-links">
+    <li><a href="../pages/index.html#residences">Residences</a></li>
+    <li><a href="../pages/index.html#amenities">Amenities</a></li>
+    <li><a href="../pages/blog.html">Blog</a></li>
+    <li><a href="../pages/index.html#enquire">Enquire</a></li>
+  </ul>
+</nav>
+
+<!-- Hero Section -->
+<section class="blog-hero">
+  <div class="blog-hero-content">
+    <div class="blog-eyebrow">Stories & Insights</div>
+    <h1 class="blog-hero-title">The <em>MISTRAL</em> Journal</h1>
+    <p class="blog-hero-subtitle">Exploring mountain living, architectural philosophy, and the art of elevated existence</p>
+  </div>
+</section>
+
+<!-- Blog Grid -->
+<section class="blog-section">
+  <div class="blog-grid">
+    
+    <!-- Blog 1 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80" alt="Blog 1">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">December 15, 2024</div>
+        <h2 class="blog-card-title">The Architecture of Silence</h2>
+        <p class="blog-card-excerpt">How we designed spaces that speak through their quietude. An exploration of minimalist mountain architecture and the power of restraint.</p>
+        <a href="../blog-posts/blog1.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 2 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80" alt="Blog 2">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">December 10, 2024</div>
+        <h2 class="blog-card-title">Living at 2,200 Metres</h2>
+        <p class="blog-card-excerpt">The unique challenges and rewards of high-altitude living. From climate considerations to the transformative effects of mountain air.</p>
+        <a href="../blog-posts/blog2.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 3 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80" alt="Blog 3">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">December 5, 2024</div>
+        <h2 class="blog-card-title">Materials That Matter</h2>
+        <p class="blog-card-excerpt">Local teak, lime plaster, and woven grass. A deep dive into the sustainable materials that define MISTRAL OOTY Residency's aesthetic.</p>
+        <a href="../blog-posts/blog3.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 4 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80" alt="Blog 4">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">November 28, 2024</div>
+        <h2 class="blog-card-title">The Art of Mountain Hospitality</h2>
+        <p class="blog-card-excerpt">Creating spaces that welcome without overwhelming. Our philosophy on hosting in the hills and the rituals of elevated living.</p>
+        <a href="../blog-posts/blog4.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 5 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800&q=80" alt="Blog 5">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">November 20, 2024</div>
+        <h2 class="blog-card-title">Sustainable Mountain Living</h2>
+        <p class="blog-card-excerpt">Green building practices and eco-friendly design at MISTRAL OOTY. How we minimize environmental impact while maximizing luxury.</p>
+        <a href="../blog-posts/blog5.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 6 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80" alt="Blog 6">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">November 15, 2024</div>
+        <h2 class="blog-card-title">Colonial Heritage Design</h2>
+        <p class="blog-card-excerpt">Honoring Ooty's colonial past while creating contemporary luxury. The blend of heritage and modern architecture.</p>
+        <a href="../blog-posts/blog6.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 7 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80" alt="Blog 7">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">November 10, 2024</div>
+        <h2 class="blog-card-title">Private Estate Living</h2>
+        <p class="blog-card-excerpt">Experience exclusive mountain estate living with personalized service and world-class amenities at MISTRAL OOTY.</p>
+        <a href="../blog-posts/blog7.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 8 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=800&q=80" alt="Blog 8">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">November 5, 2024</div>
+        <h2 class="blog-card-title">Private Suites & Panoramic Views</h2>
+        <p class="blog-card-excerpt">Floor-to-ceiling windows frame the Nilgiri landscape. Discover our luxury suites designed for mountain living.</p>
+        <a href="../blog-posts/blog8.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 9 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&q=80" alt="Blog 9">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">October 30, 2024</div>
+        <h2 class="blog-card-title">Nilgiri Hills Properties</h2>
+        <p class="blog-card-excerpt">Why MISTRAL OOTY is the premier property in the Nilgiri Hills. Location, design, and lifestyle combined.</p>
+        <a href="../blog-posts/blog9.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+    <!-- Blog 10 -->
+    <article class="blog-card">
+      <div class="blog-card-image">
+        <img src="https://images.unsplash.com/photo-1600585152915-d208bec867a1?w=800&q=80" alt="Blog 10">
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-card-date">October 25, 2024</div>
+        <h2 class="blog-card-title">Luxury Mountain Homes</h2>
+        <p class="blog-card-excerpt">What makes a mountain home truly luxurious? Explore the features and philosophy behind MISTRAL OOTY residences.</p>
+        <a href="../blog-posts/blog10.html" class="blog-card-link">Read More</a>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">MISTRAL OOTY</div>
+  <div class="footer-tagline">Elevated Living</div>
+</footer>
+
+</body>
+</html>

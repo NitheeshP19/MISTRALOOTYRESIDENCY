@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Architecture of Silence - MISTRAL OOTY Residency</title>
+<meta name="description" content="Discover minimalist mountain architecture at MISTRAL OOTY Residency in Nilgiri Hills. Luxury hill residences designed with restraint and elegance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #c9a96e;
+    --gold-light: #e8d5a3;
+    --cream: #f5f0e8;
+    --dark: #0a0a08;
+    --charcoal: #1a1a16;
+  }
+  body {
+    background: var(--dark);
+    color: var(--cream);
+    font-family: 'Tenor Sans', sans-serif;
+    line-height: 1.8;
+  }
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10,10,8,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(201,169,110,0.1);
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--cream);
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.7);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .article-hero {
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(rgba(10,10,8,0.6), rgba(10,10,8,0.6)), 
+                url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    margin-top: 80px;
+  }
+  .article-hero-content {
+    text-align: center;
+    max-width: 800px;
+    padding: 0 48px;
+  }
+  .article-date {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .article-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(42px, 5vw, 72px);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--cream);
+  }
+  .article-content {
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 0 48px;
+  }
+  .article-content p {
+    font-size: 14px;
+    line-height: 2;
+    color: rgba(245,240,232,0.7);
+    margin-bottom: 24px;
+  }
+  .article-content h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--cream);
+    margin: 48px 0 24px;
+  }
+  .article-content a {
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold);
+    transition: color 0.3s ease;
+  }
+  .article-content a:hover { color: var(--gold-light); }
+  .related-posts {
+    background: var(--charcoal);
+    padding: 80px 48px;
+    margin-top: 80px;
+  }
+  .related-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    text-align: center;
+    color: var(--cream);
+    margin-bottom: 48px;
+  }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .related-card {
+    background: var(--dark);
+    border: 1px solid rgba(201,169,110,0.1);
+    padding: 24px;
+    transition: border-color 0.3s ease;
+  }
+  .related-card:hover { border-color: var(--gold); }
+  .related-card a {
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 16px;
+  }
+  @media (max-width: 768px) {
+    nav { padding: 24px; }
+    .article-content { padding: 0 24px; }
+    .related-posts { padding: 60px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../pages/index.html" class="nav-logo">MISTRAL OOTY Residency</a>
+  <ul class="nav-links">
+    <li><a href="../pages/index.html">Home</a></li>
+    <li><a href="../pages/blog.html">Blog</a></li>
+    <li><a href="../pages/index.html#enquire">Enquire</a></li>
+  </ul>
+</nav>
+
+<section class="article-hero">
+  <div class="article-hero-content">
+    <div class="article-date">December 15, 2024</div>
+    <h1 class="article-title">The Architecture of Silence</h1>
+  </div>
+</section>
+
+<article class="article-content">
+  <p>At <a href="../pages/index.html">MISTRAL OOTY Residency</a>, we believe that true luxury speaks through quietude. Our <a href="blog2.html">mountain residences</a> in the Nilgiri Hills are designed with minimalist principles that honor the natural landscape.</p>
+
+  <h2>Designing for the Mountains</h2>
+  <p>The <a href="blog3.html">architecture of MISTRAL OOTY</a> embraces restraint. Every line, every material, every space is intentional. We've created <a href="blog4.html">luxury hill stations</a> that don't compete with nature but complement it.</p>
+
+  <p>Our approach to <a href="blog5.html">sustainable mountain living</a> means using local materials like teak and lime plaster. The <a href="blog6.html">terracotta rooflines</a> trace the contours of the hills, creating a seamless dialogue between built and natural environments.</p>
+
+  <h2>The Power of Restraint</h2>
+  <p>In an age of excess, <a href="blog7.html">minimalist luxury residences</a> offer something rare: peace. The <a href="blog8.html">private suites at MISTRAL OOTY</a> feature floor-to-ceiling windows that frame the valley like living artwork.</p>
+
+  <p>Our <a href="blog9.html">Nilgiri Hills properties</a> are positioned at 2,200 metres, offering unobstructed panoramas. Each <a href="blog10.html">mountain home</a> commands views that change with the seasons, the weather, the time of day.</p>
+
+  <p>Explore our <a href="../pages/blog.html">architectural philosophy</a> and discover how <a href="../pages/blog.html">elevated living</a> can transform your lifestyle. Visit our <a href="../pages/blog.html">amenities</a> or learn about <a href="../pages/blog.html">life in Ooty</a>.</p>
+</article>
+
+<section class="related-posts">
+  <h2 class="related-title">Related Articles</h2>
+  <div class="related-grid">
+    <div class="related-card"><a href="blog2.html">Living at 2,200 Metres</a></div>
+    <div class="related-card"><a href="blog3.html">Materials That Matter</a></div>
+    <div class="related-card"><a href="blog4.html">Mountain Hospitality</a></div>
+    <div class="related-card"><a href="blog5.html">Sustainable Living</a></div>
+    <div class="related-card"><a href="blog6.html">Colonial Heritage Design</a></div>
+    <div class="related-card"><a href="blog7.html">Private Estate Living</a></div>
+  </div>
+</section>
+
+</body>
+</html>
