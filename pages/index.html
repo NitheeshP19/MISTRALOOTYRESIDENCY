@@ -38,9 +38,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(10,10,8,0.3);
-    backdrop-filter: blur(10px);
+    background: rgba(10,10,8,0.85);
     pointer-events: none;
+  }
+
+  @media (min-width: 769px) {
+    nav {
+      backdrop-filter: blur(10px);
+      background: rgba(10,10,8,0.3);
+    }
   }
 
   .nav-logo {
@@ -304,7 +310,6 @@
     flex-shrink: 0;
     padding: 20px 50px;
     background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px);
     border: 1px solid rgba(201, 169, 110, 0.3);
     border-radius: 50px;
     position: relative;
@@ -313,6 +318,12 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.1),
       0 0 20px rgba(201, 169, 110, 0.15);
     transition: all 0.4s ease;
+  }
+
+  @media (min-width: 769px) {
+    .marquee-item {
+      backdrop-filter: blur(20px);
+    }
   }
 
   .marquee-item::before {
@@ -424,18 +435,33 @@
   }
 
   @media (max-width: 768px) {
+    #hero-scroll-section {
+      height: 800vh;
+    }
     .marquee-item {
       padding: 12px 30px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     }
     .marquee-text {
       font-size: 24px;
+      animation: none;
+      filter: none;
+    }
+    .marquee-text::after {
+      display: none;
     }
     .premium-marquee-section {
       padding: 60px 0;
     }
+    .premium-marquee-section::before,
+    .premium-marquee-section::after {
+      display: none;
+    }
     .marquee-title {
       margin-bottom: 40px;
       font-size: 42px;
+      filter: none;
+      text-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
     }
     .marquee-track {
       gap: 25px;
@@ -870,13 +896,42 @@ function updateOnScroll() {
   }
 }
 
+// Throttle function for performance
+function throttle(func, limit) {
+  let inThrottle;
+  return function() {
+    const args = arguments;
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  }
+}
+
+// Detect mobile
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
+// Use requestAnimationFrame for smooth updates
+let ticking = false;
+function requestUpdate() {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      updateOnScroll();
+      ticking = false;
+    });
+    ticking = true;
+  }
+}
+
 // Initialize
 preloadImages();
-window.addEventListener('scroll', updateOnScroll);
-window.addEventListener('resize', () => {
+window.addEventListener('scroll', requestUpdate, { passive: true });
+window.addEventListener('resize', throttle(() => {
   resizeCanvas();
   updateOnScroll();
-});
+}, 200));
 
 // Initial update
 updateOnScroll();

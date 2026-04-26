@@ -76,6 +76,36 @@
 
   .nav-links a:hover { color: var(--gold); }
 
+  /* Mobile Menu Toggle */
+  .menu-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    z-index: 101;
+    padding: 10px;
+  }
+
+  .menu-toggle span {
+    width: 28px;
+    height: 2px;
+    background: var(--gold);
+    transition: all 0.3s ease;
+    border-radius: 2px;
+  }
+
+  .menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(8px, 8px);
+  }
+
+  .menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
+  }
+
   /* Dropdown */
   .dropdown {
     position: relative;
@@ -296,7 +326,46 @@
 
   @media (max-width: 768px) {
     nav { padding: 24px; }
-    .nav-links { gap: 24px; }
+    
+    .menu-toggle {
+      display: flex;
+    }
+
+    .nav-links {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 280px;
+      height: 100vh;
+      background: rgba(10,10,8,0.98);
+      backdrop-filter: blur(20px);
+      flex-direction: column;
+      gap: 0;
+      padding: 100px 40px 40px;
+      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: -5px 0 30px rgba(0,0,0,0.5);
+      border-left: 1px solid rgba(201,169,110,0.2);
+      overflow-y: auto;
+    }
+
+    .nav-links.active {
+      right: 0;
+    }
+
+    .nav-links li {
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+
+    .nav-links a {
+      padding: 20px 0;
+      font-size: 13px;
+      letter-spacing: 0.2em;
+    }
+
+    .nav-links a:hover {
+      padding-left: 10px;
+    }
+
     .blog-hero { height: 50vh; padding: 0 24px; }
     .blog-section { padding: 80px 24px; }
     .blog-grid { grid-template-columns: 1fr; gap: 40px; }
@@ -309,7 +378,15 @@
 <!-- NAV -->
 <nav>
   <a href="../pages/index.html" class="nav-logo">MISTRAL OOTY Residency</a>
-  <ul class="nav-links">
+  
+  <!-- Mobile Menu Toggle -->
+  <div class="menu-toggle" id="menuToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <ul class="nav-links" id="navLinks">
     <li><a href="../pages/index.html#residences">Residences</a></li>
     <li><a href="../pages/index.html#amenities">Amenities</a></li>
     <li><a href="../pages/blog.html">Blog</a></li>
@@ -468,6 +545,34 @@
   <div class="footer-logo">MISTRAL OOTY</div>
   <div class="footer-tagline">Elevated Living</div>
 </footer>
+
+<script>
+// Mobile Menu Toggle
+const menuToggle = document.getElementById('menuToggle');
+const navLinks = document.getElementById('navLinks');
+
+menuToggle.addEventListener('click', () => {
+  menuToggle.classList.toggle('active');
+  navLinks.classList.toggle('active');
+});
+
+// Close menu when clicking on a link
+const navLinkItems = navLinks.querySelectorAll('a');
+navLinkItems.forEach(link => {
+  link.addEventListener('click', () => {
+    menuToggle.classList.remove('active');
+    navLinks.classList.remove('active');
+  });
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
+    menuToggle.classList.remove('active');
+    navLinks.classList.remove('active');
+  }
+});
+</script>
 
 </body>
 </html>
