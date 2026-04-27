@@ -11,8 +11,9 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --gold: #c9a96e;
-    --gold-light: #e8d5a3;
+    --gold: #f0c766;
+    --gold-deep: #c99a2e;
+    --gold-light: #fff0ba;
     --cream: #f5f0e8;
     --dark: #0a0a08;
     --charcoal: #1a1a16;
@@ -25,6 +26,8 @@
     color: var(--cream);
     font-family: 'Tenor Sans', sans-serif;
     overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   /* NAV */
@@ -111,7 +114,7 @@
 
   /* HERO SCROLL SECTION */
   #hero-scroll-section {
-    height: 1000vh;
+    height: 760vh;
     position: relative;
   }
 
@@ -186,6 +189,7 @@
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: var(--gold);
+    text-shadow: 0 2px 14px rgba(0,0,0,0.85), 0 0 18px rgba(240,199,102,0.35);
   }
 
   /* Scroll Indicator */
@@ -213,6 +217,7 @@
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: var(--gold);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.9), 0 0 14px rgba(240,199,102,0.35);
   }
 
   .scroll-line {
@@ -271,6 +276,7 @@
     margin-bottom: 16px;
     transform: translateY(20px);
     transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+    text-shadow: 0 2px 14px rgba(0,0,0,0.95), 0 0 16px rgba(240,199,102,0.28);
   }
 
   .hero-text-panel.visible .panel-eyebrow {
@@ -345,7 +351,7 @@
   /* PREMIUM MARQUEE SECTION */
   .premium-marquee-section {
     background: linear-gradient(180deg, #000000 0%, #0a0a08 50%, #000000 100%);
-    padding: 100px 0;
+    padding: 120px 0 140px;
     position: relative;
     overflow: hidden;
   }
@@ -397,7 +403,7 @@
   .marquee-track {
     display: flex;
     gap: 40px;
-    animation: marqueeScroll 20s linear infinite;
+    animation: marqueeScroll 15s linear infinite;
     will-change: transform;
   }
 
@@ -456,17 +462,17 @@
     font-size: 36px;
     font-weight: 400;
     background: linear-gradient(135deg, 
-      #d4af37 0%, 
-      #f4e5c3 25%, 
-      #d4af37 50%, 
-      #f4e5c3 75%, 
-      #d4af37 100%);
+      #f2c44f 0%, 
+      #fff1b8 24%, 
+      #d59a22 50%, 
+      #fff4ca 76%, 
+      #f2c44f 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: goldShine 3s linear infinite;
-    filter: drop-shadow(0 2px 8px rgba(201, 169, 110, 0.4));
+    filter: drop-shadow(0 2px 1px rgba(0,0,0,0.85)) drop-shadow(0 0 14px rgba(240,199,102,0.35));
     white-space: nowrap;
     position: relative;
   }
@@ -558,13 +564,13 @@
     .marquee-text {
       font-size: 24px;
       animation: none;
-      filter: none;
+      filter: drop-shadow(0 2px 1px rgba(0,0,0,0.85)) drop-shadow(0 0 10px rgba(240,199,102,0.3));
     }
     .marquee-text::after {
       display: none;
     }
     .premium-marquee-section {
-      padding: 60px 0;
+      padding: 70px 0 90px;
     }
     .premium-marquee-section::before,
     .premium-marquee-section::after {
@@ -578,7 +584,7 @@
     }
     .marquee-track {
       gap: 25px;
-      animation: marqueeScroll 15s linear infinite;
+      animation: marqueeScroll 10s linear infinite;
     }
   }
 
@@ -590,7 +596,7 @@
       font-size: 20px;
     }
     .premium-marquee-section {
-      padding: 50px 0;
+      padding: 60px 0 80px;
     }
     .marquee-title {
       margin-bottom: 30px;
@@ -598,7 +604,7 @@
     }
     .marquee-track {
       gap: 20px;
-      animation: marqueeScroll 12s linear infinite;
+      animation: marqueeScroll 8s linear infinite;
     }
     .marquee-container::before,
     .marquee-container::after {
@@ -634,6 +640,7 @@
     text-transform: uppercase;
     color: var(--gold);
     margin-bottom: 20px;
+    text-shadow: 0 2px 14px rgba(0,0,0,0.75), 0 0 14px rgba(240,199,102,0.25);
   }
 
   .section-title {
@@ -932,9 +939,18 @@ const panels = [
 ];
 
 // Set canvas size
+let canvasWidth = window.innerWidth;
+let canvasHeight = window.innerHeight;
+
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvasWidth = window.innerWidth;
+  canvasHeight = window.innerHeight;
+  canvas.width = Math.round(canvasWidth * dpr);
+  canvas.height = Math.round(canvasHeight * dpr);
+  canvas.style.width = `${canvasWidth}px`;
+  canvas.style.height = `${canvasHeight}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
@@ -946,6 +962,8 @@ let imagesLoaded = 0;
 function preloadImages() {
   for (let i = 1; i <= frameCount; i++) {
     const img = new Image();
+    img.decoding = 'async';
+    if (i === 1) img.fetchPriority = 'high';
     const frameNumber = String(i).padStart(3, '0');
     img.src = `${imagePath}ezgif-frame-${frameNumber}.jpg`;
     
@@ -967,26 +985,32 @@ function drawFrame(index) {
     const img = images[index];
     
     // Calculate dimensions to cover canvas while maintaining aspect ratio
-    const canvasRatio = canvas.width / canvas.height;
+    const canvasRatio = canvasWidth / canvasHeight;
     const imgRatio = img.width / img.height;
     
     let drawWidth, drawHeight, offsetX, offsetY;
     
     if (canvasRatio > imgRatio) {
-      drawWidth = canvas.width;
-      drawHeight = canvas.width / imgRatio;
+      drawWidth = canvasWidth;
+      drawHeight = canvasWidth / imgRatio;
       offsetX = 0;
-      offsetY = (canvas.height - drawHeight) / 2;
+      offsetY = (canvasHeight - drawHeight) / 2;
     } else {
-      drawHeight = canvas.height;
-      drawWidth = canvas.height * imgRatio;
-      offsetX = (canvas.width - drawWidth) / 2;
+      drawHeight = canvasHeight;
+      drawWidth = canvasHeight * imgRatio;
+      offsetX = (canvasWidth - drawWidth) / 2;
       offsetY = 0;
     }
     
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
   }
 }
+
+let targetFrameIndex = 0;
+let currentFrameIndex = 0;
+let lastDrawnFrameIndex = -1;
+let scrubAnimationId = null;
 
 // Update on scroll
 function updateOnScroll() {
@@ -1011,17 +1035,12 @@ function updateOnScroll() {
     scrollIndicator.classList.remove('hidden');
   }
   
-  // Calculate current frame with easing for smoother feel
-  const frameIndex = Math.min(
+  // Calculate target frame; the animation loop eases toward it for a premium scrub.
+  targetFrameIndex = Math.min(
     Math.floor(scrollFraction * frameCount),
     frameCount - 1
   );
-  
-  // Draw frame
-  drawFrame(frameIndex);
-  
-  // Update frame counter
-  frameCounter.textContent = `${String(frameIndex + 1).padStart(3, '0')} / ${frameCount}`;
+  startFrameScrub();
   
   // Update text panels with faster transitions
   if (scrollFraction < 0.3) {
@@ -1036,6 +1055,34 @@ function updateOnScroll() {
     panels[0].classList.remove('visible');
     panels[1].classList.remove('visible');
     panels[2].classList.add('visible');
+  }
+}
+
+function animateFrameScrub() {
+  const distance = targetFrameIndex - currentFrameIndex;
+  currentFrameIndex += distance * 0.16;
+
+  if (Math.abs(distance) < 0.08) {
+    currentFrameIndex = targetFrameIndex;
+  }
+
+  const frameIndex = Math.round(currentFrameIndex);
+  if (frameIndex !== lastDrawnFrameIndex) {
+    drawFrame(frameIndex);
+    frameCounter.textContent = `${String(frameIndex + 1).padStart(3, '0')} / ${frameCount}`;
+    lastDrawnFrameIndex = frameIndex;
+  }
+
+  if (currentFrameIndex !== targetFrameIndex) {
+    scrubAnimationId = requestAnimationFrame(animateFrameScrub);
+  } else {
+    scrubAnimationId = null;
+  }
+}
+
+function startFrameScrub() {
+  if (scrubAnimationId === null) {
+    scrubAnimationId = requestAnimationFrame(animateFrameScrub);
   }
 }
 
