@@ -151,6 +151,7 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    transform: translateZ(0);
   }
 
   /* Scroll to Reveal Text */
@@ -765,7 +766,7 @@
     </div>
 
     <!-- Frame counter -->
-    <div class="frame-counter" id="frameCounter">001 / 192</div>
+    <div class="frame-counter" id="frameCounter">001 / 240</div>
 
     <!-- Panel 1 -->
     <div class="hero-text-panel" id="panel-1">
@@ -958,56 +959,109 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Preload images
-const images = [];
+// Preload images progressively so scrolling stays responsive while frames decode.
+const images = new Array(frameCount);
+const loadedFrames = new Set();
 let imagesLoaded = 0;
 
+function getFrameSrc(index) {
+  const frameNumber = String(index + 1).padStart(3, '0');
+  return `${imagePath}ezgif-frame-${frameNumber}.jpg`;
+}
+
+function loadFrame(index, priority = 'auto') {
+  if (index < 0 || index >= frameCount || images[index]) return images[index];
+
+  const img = new Image();
+  img.decoding = 'async';
+  if ('fetchPriority' in img) img.fetchPriority = priority;
+
+  img.onload = () => {
+    imagesLoaded++;
+    loadedFrames.add(index);
+
+    if (imagesLoaded === 1 || index === Math.round(currentFrameIndex)) {
+      drawFrame(Math.round(currentFrameIndex));
+    }
+  };
+
+  img.src = getFrameSrc(index);
+  images[index] = img;
+  return img;
+}
+
 function preloadImages() {
-  for (let i = 1; i <= frameCount; i++) {
-    const img = new Image();
-    img.decoding = 'async';
-    if (i === 1) img.fetchPriority = 'high';
-    const frameNumber = String(i).padStart(3, '0');
-    img.src = `${imagePath}ezgif-frame-${frameNumber}.jpg`;
-    
-    img.onload = () => {
-      imagesLoaded++;
-      if (imagesLoaded === 1) {
-        // Draw first frame immediately
-        drawFrame(0);
-      }
-    };
-    
-    images.push(img);
+  const eagerFrames = 18;
+  for (let i = 0; i < Math.min(eagerFrames, frameCount); i++) {
+    loadFrame(i, i === 0 ? 'high' : 'auto');
   }
+
+  let nextFrame = eagerFrames;
+  const loadBatch = () => {
+    const batchSize = window.innerWidth <= 768 ? 4 : 8;
+    const batchEnd = Math.min(nextFrame + batchSize, frameCount);
+
+    for (; nextFrame < batchEnd; nextFrame++) {
+      loadFrame(nextFrame);
+    }
+
+    if (nextFrame < frameCount) {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadBatch, { timeout: 500 });
+      } else {
+        setTimeout(loadBatch, 40);
+      }
+    }
+  };
+
+  loadBatch();
+}
+
+function getNearestLoadedFrame(index) {
+  if (loadedFrames.has(index)) return index;
+
+  for (let distance = 1; distance < frameCount; distance++) {
+    const previous = index - distance;
+    const next = index + distance;
+
+    if (previous >= 0 && loadedFrames.has(previous)) return previous;
+    if (next < frameCount && loadedFrames.has(next)) return next;
+  }
+
+  return -1;
 }
 
 // Draw frame on canvas
 function drawFrame(index) {
-  if (images[index] && images[index].complete) {
-    const img = images[index];
-    
-    // Calculate dimensions to cover canvas while maintaining aspect ratio
-    const canvasRatio = canvasWidth / canvasHeight;
-    const imgRatio = img.width / img.height;
-    
-    let drawWidth, drawHeight, offsetX, offsetY;
-    
-    if (canvasRatio > imgRatio) {
-      drawWidth = canvasWidth;
-      drawHeight = canvasWidth / imgRatio;
-      offsetX = 0;
-      offsetY = (canvasHeight - drawHeight) / 2;
-    } else {
-      drawHeight = canvasHeight;
-      drawWidth = canvasHeight * imgRatio;
-      offsetX = (canvasWidth - drawWidth) / 2;
-      offsetY = 0;
-    }
-    
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+  const requestedIndex = Math.max(0, Math.min(frameCount - 1, index));
+  loadFrame(requestedIndex, 'high');
+
+  const drawableIndex = getNearestLoadedFrame(requestedIndex);
+  if (drawableIndex === -1) return;
+
+  const img = images[drawableIndex];
+  if (!img || !img.complete || !img.naturalWidth) return;
+
+  // Calculate dimensions to cover canvas while maintaining aspect ratio.
+  const canvasRatio = canvasWidth / canvasHeight;
+  const imgRatio = img.naturalWidth / img.naturalHeight;
+
+  let drawWidth, drawHeight, offsetX, offsetY;
+
+  if (canvasRatio > imgRatio) {
+    drawWidth = canvasWidth;
+    drawHeight = canvasWidth / imgRatio;
+    offsetX = 0;
+    offsetY = (canvasHeight - drawHeight) / 2;
+  } else {
+    drawHeight = canvasHeight;
+    drawWidth = canvasHeight * imgRatio;
+    offsetX = (canvasWidth - drawWidth) / 2;
+    offsetY = 0;
   }
+
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+  ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 }
 
 let targetFrameIndex = 0;
@@ -1017,9 +1071,10 @@ let scrubAnimationId = null;
 
 // Update on scroll
 function updateOnScroll() {
-  const scrollTop = window.pageYOffset;
-  const maxScroll = heroSection.offsetHeight - window.innerHeight;
-  const scrollFraction = Math.min(scrollTop / maxScroll, 1);
+  const sectionRect = heroSection.getBoundingClientRect();
+  const maxScroll = Math.max(heroSection.offsetHeight - window.innerHeight, 1);
+  const scrollTop = Math.max(0, -sectionRect.top);
+  const scrollFraction = Math.max(0, Math.min(scrollTop / maxScroll, 1));
   
   // Reveal canvas and hide text as user scrolls
   if (scrollTop > 50) {
@@ -1040,9 +1095,12 @@ function updateOnScroll() {
   
   // Calculate target frame; the animation loop eases toward it for a premium scrub.
   targetFrameIndex = Math.min(
-    Math.floor(scrollFraction * frameCount),
+    Math.round(scrollFraction * (frameCount - 1)),
     frameCount - 1
   );
+  for (let i = -3; i <= 8; i++) {
+    loadFrame(targetFrameIndex + i, i === 0 ? 'high' : 'auto');
+  }
   startFrameScrub();
   
   // Update text panels with faster transitions
@@ -1123,6 +1181,7 @@ preloadImages();
 window.addEventListener('scroll', requestUpdate, { passive: true });
 window.addEventListener('resize', throttle(() => {
   resizeCanvas();
+  drawFrame(Math.round(currentFrameIndex));
   updateOnScroll();
 }, 200));
 
