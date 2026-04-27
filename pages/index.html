@@ -111,7 +111,7 @@
 
   /* HERO SCROLL SECTION */
   #hero-scroll-section {
-    height: 1500vh;
+    height: 1000vh;
     position: relative;
   }
 
@@ -129,6 +129,20 @@
     background: var(--dark);
   }
 
+  #canvas-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+
+  #canvas-container.revealed::before {
+    opacity: 0;
+  }
+
   #frame-canvas {
     width: 100%;
     height: 100%;
@@ -136,18 +150,97 @@
     display: block;
   }
 
-  .canvas-overlay {
+  /* Scroll to Reveal Text */
+  .scroll-reveal-text {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(0,0,0,0.5) 0%,
-      rgba(0,0,0,0.3) 30%,
-      rgba(0,0,0,0.3) 60%,
-      rgba(0,0,0,0.75) 100%
-    );
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 2;
+    opacity: 1;
+    transition: opacity 0.6s ease;
     pointer-events: none;
   }
+
+  .scroll-reveal-text.hidden {
+    opacity: 0;
+  }
+
+  .reveal-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(40px, 5vw, 70px);
+    font-weight: 300;
+    color: var(--cream);
+    margin-bottom: 20px;
+    letter-spacing: 0.02em;
+  }
+
+  .reveal-headline em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .reveal-subtext {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* Scroll Indicator */
+  .scroll-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .scroll-indicator.hidden {
+    opacity: 0;
+  }
+
+  .scroll-text {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scroll-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: var(--gold);
+    animation: scrollMove 2s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--gold);
+  }
+
+  @keyframes scrollMove {
+    0% { transform: translateY(-20px); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(50px); opacity: 0; }
+  }
+
 
   /* HERO TEXT PANELS */
   .hero-text-panel {
@@ -158,8 +251,14 @@
     justify-content: flex-end;
     padding: 0 80px 80px;
     opacity: 0;
-    transition: opacity 0.6s ease;
+    transition: opacity 0.5s ease;
     pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 60%,
+      rgba(0,0,0,0.4) 100%
+    );
   }
 
   .hero-text-panel.visible { opacity: 1; }
@@ -188,6 +287,7 @@
     max-width: 700px;
     transform: translateY(40px);
     transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
   }
 
   .hero-text-panel.visible .panel-headline {
@@ -436,7 +536,20 @@
 
   @media (max-width: 768px) {
     #hero-scroll-section {
-      height: 800vh;
+      height: 600vh;
+    }
+    .reveal-headline {
+      font-size: 32px;
+      padding: 0 20px;
+    }
+    .reveal-subtext {
+      font-size: 9px;
+    }
+    .scroll-indicator {
+      bottom: 30px;
+    }
+    .scroll-line {
+      height: 40px;
     }
     .marquee-item {
       padding: 12px 30px;
@@ -628,7 +741,18 @@
     <div id="canvas-container">
       <canvas id="frame-canvas"></canvas>
     </div>
-    <div class="canvas-overlay"></div>
+
+    <!-- Scroll to Reveal Text -->
+    <div class="scroll-reveal-text" id="scrollRevealText">
+      <h2 class="reveal-headline">Scroll to <em>reveal</em></h2>
+      <p class="reveal-subtext">Your Journey Begins</p>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator" id="scrollIndicator">
+      <span class="scroll-text">Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
 
     <!-- Frame counter -->
     <div class="frame-counter" id="frameCounter">001 / 192</div>
@@ -799,6 +923,8 @@ const canvas = document.getElementById('frame-canvas');
 const ctx = canvas.getContext('2d');
 const heroSection = document.getElementById('hero-scroll-section');
 const frameCounter = document.getElementById('frameCounter');
+const canvasContainer = document.getElementById('canvas-container');
+const scrollRevealText = document.getElementById('scrollRevealText');
 const panels = [
   document.getElementById('panel-1'),
   document.getElementById('panel-2'),
@@ -868,7 +994,24 @@ function updateOnScroll() {
   const maxScroll = heroSection.offsetHeight - window.innerHeight;
   const scrollFraction = Math.min(scrollTop / maxScroll, 1);
   
-  // Calculate current frame
+  // Reveal canvas and hide text as user scrolls
+  if (scrollTop > 50) {
+    canvasContainer.classList.add('revealed');
+    scrollRevealText.classList.add('hidden');
+  } else {
+    canvasContainer.classList.remove('revealed');
+    scrollRevealText.classList.remove('hidden');
+  }
+  
+  // Hide scroll indicator after scrolling starts
+  const scrollIndicator = document.getElementById('scrollIndicator');
+  if (scrollTop > 100) {
+    scrollIndicator.classList.add('hidden');
+  } else {
+    scrollIndicator.classList.remove('hidden');
+  }
+  
+  // Calculate current frame with easing for smoother feel
   const frameIndex = Math.min(
     Math.floor(scrollFraction * frameCount),
     frameCount - 1
@@ -880,12 +1023,12 @@ function updateOnScroll() {
   // Update frame counter
   frameCounter.textContent = `${String(frameIndex + 1).padStart(3, '0')} / ${frameCount}`;
   
-  // Update text panels based on scroll progress
-  if (scrollFraction < 0.33) {
+  // Update text panels with faster transitions
+  if (scrollFraction < 0.3) {
     panels[0].classList.add('visible');
     panels[1].classList.remove('visible');
     panels[2].classList.remove('visible');
-  } else if (scrollFraction < 0.66) {
+  } else if (scrollFraction < 0.65) {
     panels[0].classList.remove('visible');
     panels[1].classList.add('visible');
     panels[2].classList.remove('visible');
