@@ -261,8 +261,8 @@
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      transparent 60%,
-      rgba(0,0,0,0.4) 100%
+      transparent 45%,
+      rgba(0,0,0,0.75) 100%
     );
   }
 
@@ -307,13 +307,15 @@
 
   .panel-sub {
     margin-top: 24px;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    color: rgba(245,240,232,0.55);
-    max-width: 380px;
-    line-height: 1.8;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: #ffffff;
+    max-width: 480px;
+    line-height: 2;
+    font-weight: 700;
     transform: translateY(30px);
     transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s;
+    text-shadow: 0 4px 24px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,1), 0 0 2px rgba(0,0,0,0.8);
   }
 
   .hero-text-panel.visible .panel-sub {
@@ -714,6 +716,7 @@
 
     .hero-text-panel { padding: 0 30px 60px; }
     .panel-headline { font-size: 42px; }
+    .panel-sub { font-size: 14px; max-width: 380px; font-weight: 700; line-height: 1.95; }
     .content-section { padding: 80px 30px; }
     .section-grid { grid-template-columns: 1fr; gap: 40px; }
   }
