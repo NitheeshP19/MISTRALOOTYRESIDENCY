@@ -28,6 +28,7 @@
     overflow-x: hidden;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* NAV */
@@ -124,6 +125,8 @@
     height: 100vh;
     width: 100%;
     overflow: hidden;
+    contain: layout paint style;
+    isolation: isolate;
   }
 
   #canvas-container {
@@ -152,6 +155,7 @@
     object-fit: cover;
     display: block;
     transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   /* Scroll to Reveal Text */
@@ -545,7 +549,13 @@
 
   @media (max-width: 768px) {
     #hero-scroll-section {
-      height: 700vh;
+      height: 560vh;
+    }
+    #hero-sticky {
+      height: 100svh;
+    }
+    #canvas-container::before {
+      transition-duration: 0.35s;
     }
     .reveal-headline {
       font-size: 32px;
@@ -589,6 +599,13 @@
       gap: 25px;
       animation: marqueeScroll 10s linear infinite;
     }
+    .hero-text-panel,
+    .panel-eyebrow,
+    .panel-headline,
+    .panel-sub,
+    .gold-line {
+      transition-duration: 0.45s;
+    }
   }
 
   @media (max-width: 480px) {
@@ -626,6 +643,8 @@
     background: var(--dark);
     padding: 140px 80px;
     position: relative;
+    content-visibility: auto;
+    contain-intrinsic-size: 900px;
   }
 
   .section-grid {
@@ -685,7 +704,6 @@
       width: 280px;
       height: 100vh;
       background: rgba(10,10,8,0.98);
-      backdrop-filter: blur(20px);
       flex-direction: column;
       gap: 0;
       padding: 100px 40px 40px;
@@ -859,7 +877,7 @@
       <p class="section-body">Nestled at 2,200 metres in the Nilgiri Hills, MISTRAL OOTY Residency offers a rare collection of private mountain homes. Each residence commands an unobstructed panorama - a theatre of clouds and valley below.</p>
     </div>
     <div>
-      <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80" alt="Estate" style="width: 100%; height: auto;" />
+      <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80" alt="Estate" loading="lazy" decoding="async" style="width: 100%; height: auto;" />
     </div>
   </div>
 </section>
@@ -874,7 +892,7 @@
       <p class="section-body">Set within reach of Ooty's gardens, lake, markets, and viewpoints, the residency gives guests a calm mountain base without losing easy access to the town's essential experiences.</p>
     </div>
     <div>
-      <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80" alt="Nilgiri mountain location" style="width: 100%; height: auto;" />
+      <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80" alt="Nilgiri mountain location" loading="lazy" decoding="async" style="width: 100%; height: auto;" />
     </div>
   </div>
 </section>
@@ -926,7 +944,10 @@ document.addEventListener('click', (e) => {
 });
 
 // Configuration
-const frameCount = 240;
+const totalFrameCount = 240;
+const mobileQuery = window.matchMedia('(max-width: 768px)');
+let isMobileView = mobileQuery.matches;
+let frameCount = isMobileView ? 120 : totalFrameCount;
 const imagePath = '../assets/ezgif-4345a94e04bfccdd-jpg/';
 
 // Elements
@@ -936,6 +957,7 @@ const heroSection = document.getElementById('hero-scroll-section');
 const frameCounter = document.getElementById('frameCounter');
 const canvasContainer = document.getElementById('canvas-container');
 const scrollRevealText = document.getElementById('scrollRevealText');
+const scrollIndicator = document.getElementById('scrollIndicator');
 const panels = [
   document.getElementById('panel-1'),
   document.getElementById('panel-2'),
@@ -945,19 +967,33 @@ const panels = [
 // Set canvas size
 let canvasWidth = window.innerWidth;
 let canvasHeight = window.innerHeight;
+let lastViewportWidth = 0;
+let lastViewportHeight = 0;
 
-function resizeCanvas() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+function getViewportHeight() {
+  return Math.round(window.visualViewport?.height || window.innerHeight);
+}
+
+function resizeCanvas(force = false) {
+  const nextWidth = Math.round(window.innerWidth);
+  const nextHeight = getViewportHeight();
+
+  if (!force && isMobileView && nextWidth === lastViewportWidth && Math.abs(nextHeight - lastViewportHeight) < 140) {
+    return;
+  }
+
+  const dpr = isMobileView ? Math.min(window.devicePixelRatio || 1, 1.25) : Math.min(window.devicePixelRatio || 1, 2);
   canvasWidth = window.innerWidth;
-  canvasHeight = window.innerHeight;
+  canvasHeight = nextHeight;
   canvas.width = Math.round(canvasWidth * dpr);
   canvas.height = Math.round(canvasHeight * dpr);
   canvas.style.width = `${canvasWidth}px`;
   canvas.style.height = `${canvasHeight}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  lastViewportWidth = nextWidth;
+  lastViewportHeight = nextHeight;
 }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+resizeCanvas(true);
 
 // Preload images progressively so scrolling stays responsive while frames decode.
 const images = new Array(frameCount);
@@ -965,7 +1001,10 @@ const loadedFrames = new Set();
 let imagesLoaded = 0;
 
 function getFrameSrc(index) {
-  const frameNumber = String(index + 1).padStart(3, '0');
+  const assetIndex = frameCount === totalFrameCount
+    ? index
+    : Math.round(index * (totalFrameCount - 1) / (frameCount - 1));
+  const frameNumber = String(assetIndex + 1).padStart(3, '0');
   return `${imagePath}ezgif-frame-${frameNumber}.jpg`;
 }
 
@@ -991,14 +1030,14 @@ function loadFrame(index, priority = 'auto') {
 }
 
 function preloadImages() {
-  const eagerFrames = 18;
+  const eagerFrames = isMobileView ? 8 : 18;
   for (let i = 0; i < Math.min(eagerFrames, frameCount); i++) {
     loadFrame(i, i === 0 ? 'high' : 'auto');
   }
 
   let nextFrame = eagerFrames;
   const loadBatch = () => {
-    const batchSize = window.innerWidth <= 768 ? 4 : 8;
+    const batchSize = isMobileView ? 3 : 8;
     const batchEnd = Math.min(nextFrame + batchSize, frameCount);
 
     for (; nextFrame < batchEnd; nextFrame++) {
@@ -1072,7 +1111,7 @@ let scrubAnimationId = null;
 // Update on scroll
 function updateOnScroll() {
   const sectionRect = heroSection.getBoundingClientRect();
-  const maxScroll = Math.max(heroSection.offsetHeight - window.innerHeight, 1);
+  const maxScroll = Math.max(heroSection.offsetHeight - canvasHeight, 1);
   const scrollTop = Math.max(0, -sectionRect.top);
   const scrollFraction = Math.max(0, Math.min(scrollTop / maxScroll, 1));
   
@@ -1086,7 +1125,6 @@ function updateOnScroll() {
   }
   
   // Hide scroll indicator after scrolling starts
-  const scrollIndicator = document.getElementById('scrollIndicator');
   if (scrollTop > 100) {
     scrollIndicator.classList.add('hidden');
   } else {
@@ -1098,7 +1136,9 @@ function updateOnScroll() {
     Math.round(scrollFraction * (frameCount - 1)),
     frameCount - 1
   );
-  for (let i = -3; i <= 8; i++) {
+  const preloadAhead = isMobileView ? 4 : 8;
+  const preloadBehind = isMobileView ? -1 : -3;
+  for (let i = preloadBehind; i <= preloadAhead; i++) {
     loadFrame(targetFrameIndex + i, i === 0 ? 'high' : 'auto');
   }
   startFrameScrub();
@@ -1121,7 +1161,7 @@ function updateOnScroll() {
 
 function animateFrameScrub() {
   const distance = targetFrameIndex - currentFrameIndex;
-  currentFrameIndex += distance * 0.16;
+  currentFrameIndex += distance * (isMobileView ? 0.34 : 0.16);
 
   if (Math.abs(distance) < 0.08) {
     currentFrameIndex = targetFrameIndex;
@@ -1161,9 +1201,6 @@ function throttle(func, limit) {
   }
 }
 
-// Detect mobile
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-
 // Use requestAnimationFrame for smooth updates
 let ticking = false;
 function requestUpdate() {
@@ -1184,6 +1221,21 @@ window.addEventListener('resize', throttle(() => {
   drawFrame(Math.round(currentFrameIndex));
   updateOnScroll();
 }, 200));
+
+mobileQuery.addEventListener('change', (event) => {
+  isMobileView = event.matches;
+  frameCount = isMobileView ? 120 : totalFrameCount;
+  images.length = 0;
+  images.length = frameCount;
+  loadedFrames.clear();
+  imagesLoaded = 0;
+  targetFrameIndex = Math.min(targetFrameIndex, frameCount - 1);
+  currentFrameIndex = Math.min(currentFrameIndex, frameCount - 1);
+  lastDrawnFrameIndex = -1;
+  resizeCanvas(true);
+  preloadImages();
+  updateOnScroll();
+});
 
 // Initial update
 updateOnScroll();
