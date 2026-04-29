@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Tenor+Sans&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Allura&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -784,7 +786,7 @@
     </div>
 
     <!-- Frame counter -->
-    <div class="frame-counter" id="frameCounter">001 / 240</div>
+    <div class="frame-counter" id="frameCounter">001 / 192</div>
 
     <!-- Panel 1 -->
     <div class="hero-text-panel" id="panel-1">
@@ -944,11 +946,11 @@ document.addEventListener('click', (e) => {
 });
 
 // Configuration
-const totalFrameCount = 240;
+const totalFrameCount = 192;
 const mobileQuery = window.matchMedia('(max-width: 768px)');
 let isMobileView = mobileQuery.matches;
-let frameCount = isMobileView ? 120 : totalFrameCount;
-const imagePath = '../assets/ezgif-4345a94e04bfccdd-jpg/';
+let frameCount = isMobileView ? 96 : totalFrameCount;
+const imagePath = '../assets/ezgif-622eebc1f3cd627b-jpg/';
 
 // Elements
 const canvas = document.getElementById('frame-canvas');
@@ -1108,6 +1110,38 @@ let currentFrameIndex = 0;
 let lastDrawnFrameIndex = -1;
 let scrubAnimationId = null;
 
+// GSAP ScrollTrigger setup
+gsap.registerPlugin(ScrollTrigger);
+
+const frameAnimation = { frame: 0 };
+
+// GSAP animation for smooth frame scrubbing
+gsap.to(frameAnimation, {
+  frame: frameCount - 1,
+  snap: "frame",
+  ease: "none",
+  scrollTrigger: {
+    trigger: heroSection,
+    start: "top top",
+    end: "bottom bottom",
+    scrub: 0.5,
+    onUpdate: () => {
+      const frameIndex = Math.round(frameAnimation.frame);
+      if (frameIndex !== lastDrawnFrameIndex) {
+        drawFrame(frameIndex);
+        frameCounter.textContent = `${String(frameIndex + 1).padStart(3, '0')} / ${frameCount}`;
+        lastDrawnFrameIndex = frameIndex;
+        
+        const preloadAhead = isMobileView ? 4 : 8;
+        const preloadBehind = isMobileView ? -1 : -3;
+        for (let i = preloadBehind; i <= preloadAhead; i++) {
+          loadFrame(frameIndex + i, i === 0 ? 'high' : 'auto');
+        }
+      }
+    }
+  }
+});
+
 // Update on scroll
 function updateOnScroll() {
   const sectionRect = heroSection.getBoundingClientRect();
@@ -1131,18 +1165,6 @@ function updateOnScroll() {
     scrollIndicator.classList.remove('hidden');
   }
   
-  // Calculate target frame; the animation loop eases toward it for a premium scrub.
-  targetFrameIndex = Math.min(
-    Math.round(scrollFraction * (frameCount - 1)),
-    frameCount - 1
-  );
-  const preloadAhead = isMobileView ? 4 : 8;
-  const preloadBehind = isMobileView ? -1 : -3;
-  for (let i = preloadBehind; i <= preloadAhead; i++) {
-    loadFrame(targetFrameIndex + i, i === 0 ? 'high' : 'auto');
-  }
-  startFrameScrub();
-  
   // Update text panels with faster transitions
   if (scrollFraction < 0.3) {
     panels[0].classList.add('visible');
@@ -1156,34 +1178,6 @@ function updateOnScroll() {
     panels[0].classList.remove('visible');
     panels[1].classList.remove('visible');
     panels[2].classList.add('visible');
-  }
-}
-
-function animateFrameScrub() {
-  const distance = targetFrameIndex - currentFrameIndex;
-  currentFrameIndex += distance * (isMobileView ? 0.34 : 0.16);
-
-  if (Math.abs(distance) < 0.08) {
-    currentFrameIndex = targetFrameIndex;
-  }
-
-  const frameIndex = Math.round(currentFrameIndex);
-  if (frameIndex !== lastDrawnFrameIndex) {
-    drawFrame(frameIndex);
-    frameCounter.textContent = `${String(frameIndex + 1).padStart(3, '0')} / ${frameCount}`;
-    lastDrawnFrameIndex = frameIndex;
-  }
-
-  if (currentFrameIndex !== targetFrameIndex) {
-    scrubAnimationId = requestAnimationFrame(animateFrameScrub);
-  } else {
-    scrubAnimationId = null;
-  }
-}
-
-function startFrameScrub() {
-  if (scrubAnimationId === null) {
-    scrubAnimationId = requestAnimationFrame(animateFrameScrub);
   }
 }
 
@@ -1218,23 +1212,22 @@ preloadImages();
 window.addEventListener('scroll', requestUpdate, { passive: true });
 window.addEventListener('resize', throttle(() => {
   resizeCanvas();
-  drawFrame(Math.round(currentFrameIndex));
-  updateOnScroll();
+  drawFrame(Math.round(frameAnimation.frame));
+  ScrollTrigger.refresh();
 }, 200));
 
 mobileQuery.addEventListener('change', (event) => {
   isMobileView = event.matches;
-  frameCount = isMobileView ? 120 : totalFrameCount;
+  frameCount = isMobileView ? 96 : totalFrameCount;
   images.length = 0;
   images.length = frameCount;
   loadedFrames.clear();
   imagesLoaded = 0;
-  targetFrameIndex = Math.min(targetFrameIndex, frameCount - 1);
-  currentFrameIndex = Math.min(currentFrameIndex, frameCount - 1);
+  frameAnimation.frame = Math.min(frameAnimation.frame, frameCount - 1);
   lastDrawnFrameIndex = -1;
   resizeCanvas(true);
   preloadImages();
-  updateOnScroll();
+  ScrollTrigger.refresh();
 });
 
 // Initial update
