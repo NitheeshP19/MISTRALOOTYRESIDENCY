@@ -165,6 +165,7 @@
     display: block;
     transform: translateZ(0);
     backface-visibility: hidden;
+    will-change: transform;
   }
 
   /* Scroll to Reveal Text */
@@ -991,7 +992,7 @@ function resizeCanvas(force = false) {
     return;
   }
 
-  const dpr = isMobileView ? Math.min(window.devicePixelRatio || 1, 1.25) : Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = isMobileView ? 1 : Math.min(window.devicePixelRatio || 1, 2);
   canvasWidth = window.innerWidth;
   canvasHeight = nextHeight;
   canvas.width = Math.round(canvasWidth * dpr);
@@ -1121,11 +1122,14 @@ const frameAnimation = { frame: 0 };
 
 // Initialize Lenis
 const lenis = new Lenis({
-  duration: 1.2,
+  duration: isMobileView ? 1.0 : 1.2,
   easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
   wheelMultiplier: 1,
+  touchMultiplier: 1.5, // Slightly more responsive touch
   infinite: false,
-  smoothWheel: true
+  smoothWheel: true,
+  smoothTouch: true, // Enable smooth touch for consistent feel
+  syncTouch: true // Sync with touch events for better performance on mobile
 });
 
 function raf(time) {

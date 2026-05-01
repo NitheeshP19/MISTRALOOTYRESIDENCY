@@ -494,13 +494,18 @@
 </footer>
 
 
+
 <script>
+const isMobile = window.matchMedia('(max-width: 768px)').matches;
 const lenis = new Lenis({
-  duration: 1.2,
+  duration: isMobile ? 1.0 : 1.2,
   easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
   wheelMultiplier: 1,
+  touchMultiplier: 1.5,
   infinite: false,
-  smoothWheel: true
+  smoothWheel: true,
+  smoothTouch: true,
+  syncTouch: true
 });
 
 function raf(time) {
@@ -509,6 +514,7 @@ function raf(time) {
 }
 requestAnimationFrame(raf);
 </script>
+
 
 </body>
 </html>
