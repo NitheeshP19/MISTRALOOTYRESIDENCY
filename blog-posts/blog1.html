@@ -8,6 +8,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Tenor+Sans&display=swap" rel="stylesheet">
 <style>
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+  .lenis.lenis-stopped { overflow: hidden; }
+  .lenis.lenis-scrolling iframe { pointer-events: none; }
+  html { scroll-behavior: auto; }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --gold: #c9a96e;
@@ -150,6 +157,7 @@
     .related-posts { padding: 60px 24px; }
   }
 </style>
+<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
 </head>
 <body>
 
@@ -196,6 +204,23 @@
     <div class="related-card"><a href="blog7.html">Private Estate Living</a></div>
   </div>
 </section>
+
+
+<script>
+const lenis = new Lenis({
+  duration: 1.2,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  wheelMultiplier: 1,
+  infinite: false,
+  smoothWheel: true
+});
+
+function raf(time) {
+  lenis.raf(time);
+  requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+</script>
 
 </body>
 </html>

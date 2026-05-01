@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Allura&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -20,6 +21,12 @@
     --dark: #0a0a08;
     --charcoal: #1a1a16;
   }
+
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+  .lenis.lenis-stopped { overflow: hidden; }
+  .lenis.lenis-scrolling iframe { pointer-events: none; }
 
   html { scroll-behavior: auto; }
 
@@ -1105,15 +1112,55 @@ function drawFrame(index) {
   ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 }
 
-let targetFrameIndex = 0;
-let currentFrameIndex = 0;
 let lastDrawnFrameIndex = -1;
-let scrubAnimationId = null;
 
 // GSAP ScrollTrigger setup
 gsap.registerPlugin(ScrollTrigger);
 
 const frameAnimation = { frame: 0 };
+
+// Initialize Lenis
+const lenis = new Lenis({
+  duration: 1.2,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  wheelMultiplier: 1,
+  infinite: false,
+  smoothWheel: true
+});
+
+function raf(time) {
+  lenis.raf(time);
+  requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+
+// Connect Lenis to ScrollTrigger
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((time) => {
+  lenis.raf(time * 1000);
+});
+gsap.ticker.lagSmoothing(0);
+
+// Handle anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    
+    // Close mobile menu if open
+    menuToggle.classList.remove('active');
+    navLinks.classList.remove('active');
+
+    const targetId = this.getAttribute('href');
+    const targetElement = document.querySelector(targetId);
+    if (targetElement) {
+      lenis.scrollTo(targetElement, {
+        offset: isMobileView ? -60 : -80, // Adjust for fixed nav height
+        duration: 1.5,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+      });
+    }
+  });
+});
 
 // GSAP animation for smooth frame scrubbing
 gsap.to(frameAnimation, {
@@ -1124,8 +1171,8 @@ gsap.to(frameAnimation, {
     trigger: heroSection,
     start: "top top",
     end: "bottom bottom",
-    scrub: 0.5,
-    onUpdate: () => {
+    scrub: true, // Use Lenis for scrubbing smoothness
+    onUpdate: (self) => {
       const frameIndex = Math.round(frameAnimation.frame);
       if (frameIndex !== lastDrawnFrameIndex) {
         drawFrame(frameIndex);
@@ -1138,78 +1185,48 @@ gsap.to(frameAnimation, {
           loadFrame(frameIndex + i, i === 0 ? 'high' : 'auto');
         }
       }
+      
+      // Update UI based on scroll progress
+      const scrollFraction = self.progress;
+      const scrollTop = self.scroll();
+
+      // Reveal canvas and hide text
+      if (scrollTop > 50) {
+        canvasContainer.classList.add('revealed');
+        scrollRevealText.classList.add('hidden');
+      } else {
+        canvasContainer.classList.remove('revealed');
+        scrollRevealText.classList.remove('hidden');
+      }
+      
+      // Hide scroll indicator
+      if (scrollTop > 100) {
+        scrollIndicator.classList.add('hidden');
+      } else {
+        scrollIndicator.classList.remove('hidden');
+      }
+      
+      // Update text panels
+      if (scrollFraction < 0.3) {
+        panels[0].classList.add('visible');
+        panels[1].classList.remove('visible');
+        panels[2].classList.remove('visible');
+      } else if (scrollFraction < 0.65) {
+        panels[0].classList.remove('visible');
+        panels[1].classList.add('visible');
+        panels[2].classList.remove('visible');
+      } else {
+        panels[0].classList.remove('visible');
+        panels[1].classList.remove('visible');
+        panels[2].classList.add('visible');
+      }
     }
   }
 });
 
-// Update on scroll
-function updateOnScroll() {
-  const sectionRect = heroSection.getBoundingClientRect();
-  const maxScroll = Math.max(heroSection.offsetHeight - canvasHeight, 1);
-  const scrollTop = Math.max(0, -sectionRect.top);
-  const scrollFraction = Math.max(0, Math.min(scrollTop / maxScroll, 1));
-  
-  // Reveal canvas and hide text as user scrolls
-  if (scrollTop > 50) {
-    canvasContainer.classList.add('revealed');
-    scrollRevealText.classList.add('hidden');
-  } else {
-    canvasContainer.classList.remove('revealed');
-    scrollRevealText.classList.remove('hidden');
-  }
-  
-  // Hide scroll indicator after scrolling starts
-  if (scrollTop > 100) {
-    scrollIndicator.classList.add('hidden');
-  } else {
-    scrollIndicator.classList.remove('hidden');
-  }
-  
-  // Update text panels with faster transitions
-  if (scrollFraction < 0.3) {
-    panels[0].classList.add('visible');
-    panels[1].classList.remove('visible');
-    panels[2].classList.remove('visible');
-  } else if (scrollFraction < 0.65) {
-    panels[0].classList.remove('visible');
-    panels[1].classList.add('visible');
-    panels[2].classList.remove('visible');
-  } else {
-    panels[0].classList.remove('visible');
-    panels[1].classList.remove('visible');
-    panels[2].classList.add('visible');
-  }
-}
-
-// Throttle function for performance
-function throttle(func, limit) {
-  let inThrottle;
-  return function() {
-    const args = arguments;
-    const context = this;
-    if (!inThrottle) {
-      func.apply(context, args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
-    }
-  }
-}
-
-// Use requestAnimationFrame for smooth updates
-let ticking = false;
-function requestUpdate() {
-  if (!ticking) {
-    requestAnimationFrame(() => {
-      updateOnScroll();
-      ticking = false;
-    });
-    ticking = true;
-  }
-}
-
 // Initialize
 preloadImages();
-window.addEventListener('scroll', requestUpdate, { passive: true });
+
 window.addEventListener('resize', throttle(() => {
   resizeCanvas();
   drawFrame(Math.round(frameAnimation.frame));
